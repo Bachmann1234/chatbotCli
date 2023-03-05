@@ -14,6 +14,7 @@ type chatLog struct {
 	userLines   []string
 	botLines    []string
 	currentLine string
+	quitting    bool
 }
 
 func initialModel() chatLog {
@@ -22,6 +23,7 @@ func initialModel() chatLog {
 
 		botLines:    []string{},
 		currentLine: "",
+		quitting:    false,
 	}
 }
 
@@ -31,14 +33,18 @@ func (m chatLog) Init() tea.Cmd {
 
 func (m chatLog) View() string {
 	var sb strings.Builder
-
+	sb.WriteString(fmt.Sprintf("%s %s\n", CompPrompt, "Hello!"))
 	for index, message := range m.userLines {
 		sb.WriteString(fmt.Sprintf("%s %s\n", UserPrompt, message))
 		sb.WriteString(fmt.Sprintf("%s %s\n", CompPrompt, m.botLines[index]))
 	}
-	sb.WriteString(fmt.Sprintf(
-		"%s %s", UserPrompt, m.currentLine,
-	))
+	if m.quitting {
+		sb.WriteString(fmt.Sprintf("%s Goodbye\n", CompPrompt))
+	} else {
+		sb.WriteString(fmt.Sprintf(
+			"%s %s", UserPrompt, m.currentLine,
+		))
+	}
 	return sb.String()
 }
 
@@ -51,7 +57,8 @@ func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch currentKey {
 
 		case "ctrl+c":
-			return m, tea.Quit
+			m.quitting = true
+			return m, SayGoodBye()
 
 		case "enter":
 			m.userLines = append(m.userLines, m.currentLine)
