@@ -31,19 +31,25 @@ func (m chatLog) Init() tea.Cmd {
 	return nil
 }
 
+func WriteUserLine(sb *strings.Builder, message string) {
+	sb.WriteString(fmt.Sprintf("%s %s\n", UserPrompt, message))
+}
+
+func WriteBotLine(sb *strings.Builder, message string) {
+	sb.WriteString(fmt.Sprintf("%s %s\n", CompPrompt, message))
+}
+
 func (m chatLog) View() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s %s\n", CompPrompt, "Hello!"))
+	WriteBotLine(&sb, "Hello!")
 	for index, message := range m.userLines {
-		sb.WriteString(fmt.Sprintf("%s %s\n", UserPrompt, message))
-		sb.WriteString(fmt.Sprintf("%s %s\n", CompPrompt, m.botLines[index]))
+		WriteUserLine(&sb, message)
+		WriteBotLine(&sb, m.botLines[index])
 	}
 	if m.quitting {
-		sb.WriteString(fmt.Sprintf("%s Goodbye\n", CompPrompt))
+		WriteBotLine(&sb, "Goodbye!")
 	} else {
-		sb.WriteString(fmt.Sprintf(
-			"%s %s", UserPrompt, m.currentLine,
-		))
+		WriteUserLine(&sb, m.currentLine)
 	}
 	return sb.String()
 }
