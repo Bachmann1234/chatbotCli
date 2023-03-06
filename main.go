@@ -3,19 +3,9 @@ package main
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"os"
 	"strings"
 )
-
-const CompPrompt = "◈"
-const UserPrompt = ">"
-
-var BotStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#15fd00"))
-
-var UserStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#fc0ff5"))
 
 type chatLog struct {
 	userLines   []string
@@ -37,14 +27,17 @@ func (m chatLog) Init() tea.Cmd {
 	return nil
 }
 
-func WriteUserLine(sb *strings.Builder, message string) {
-	sb.WriteString(UserStyle.Render(fmt.Sprintf("%s %s", UserPrompt, message)))
+func WriteLine(sb *strings.Builder, message string, user User) {
+	sb.WriteString(user.style.Render(fmt.Sprintf("%s %s", user.prompt, message)))
 	sb.WriteString("\n")
 }
 
+func WriteUserLine(sb *strings.Builder, message string) {
+	WriteLine(sb, message, humanUser)
+}
+
 func WriteBotLine(sb *strings.Builder, message string) {
-	sb.WriteString(BotStyle.Render(fmt.Sprintf("%s %s", CompPrompt, message)))
-	sb.WriteString("\n")
+	WriteLine(sb, message, botUser)
 }
 
 func (m chatLog) View() string {
