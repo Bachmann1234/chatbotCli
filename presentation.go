@@ -2,8 +2,8 @@ package main
 
 import "github.com/charmbracelet/lipgloss"
 
-const CompPrompt = "◈"
-const UserPrompt = ">"
+const CompPrompt = "◈ "
+const UserPrompt = "> "
 
 var BotStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#15fd00"))

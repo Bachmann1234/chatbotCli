@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"strings"
@@ -10,25 +11,28 @@ import (
 type chatLog struct {
 	userLines   []string
 	botLines    []string
-	currentLine string
+	currentLine textinput.Model
 	quitting    bool
 }
 
 func initialModel() chatLog {
+	userInput := textinput.New()
+	userInput.TextStyle = humanUser.style
+	userInput.Prompt = humanUser.prompt
 	return chatLog{
 		userLines:   []string{},
 		botLines:    []string{},
-		currentLine: "",
+		currentLine: userInput,
 		quitting:    false,
 	}
 }
 
 func (m chatLog) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func WriteLine(sb *strings.Builder, message string, user User) {
-	sb.WriteString(user.style.Render(fmt.Sprintf("%s %s", user.prompt, message)))
+	sb.WriteString(user.style.Render(fmt.Sprintf("%s%s", user.prompt, message)))
 	sb.WriteString("\n")
 }
 
@@ -50,12 +54,13 @@ func (m chatLog) View() string {
 	if m.quitting {
 		WriteBotLine(&sb, "Goodbye!")
 	} else {
-		WriteUserLine(&sb, m.currentLine)
+		sb.WriteString(humanUser.style.Render(m.currentLine.View()))
 	}
 	return sb.String()
 }
 
 func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd = nil
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -68,24 +73,17 @@ func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, SayGoodBye()
 
 		case "enter":
-			m.userLines = append(m.userLines, m.currentLine)
+			m.userLines = append(m.userLines, m.currentLine.Value())
+			m.currentLine = textinput.New()
 			m.botLines = append(m.botLines, "That's so cool!")
-			m.currentLine = ""
-			return m, nil
-		case "tab":
-			m.currentLine += "    "
-			return m, nil
-		case "backspace":
-			if len(m.currentLine) > 0 {
-				m.currentLine = m.currentLine[:len(m.currentLine)-1]
-			}
-			return m, nil
-		default:
-			m.currentLine += currentKey
-			return m, nil
+			return m, cmd
 		}
+		if !m.currentLine.Focused() {
+			m.currentLine.Focus()
+		}
+		m.currentLine, cmd = m.currentLine.Update(msg)
 	}
-	return m, nil
+	return m, cmd
 }
 
 func main() {
