@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"os"
 	"strings"
 )
@@ -13,22 +15,35 @@ type chatLog struct {
 	botLines    []string
 	currentLine textinput.Model
 	quitting    bool
+	spinner     spinner.Model
 }
 
 func initialModel() chatLog {
 	userInput := textinput.New()
 	userInput.TextStyle = humanUser.style
 	userInput.Prompt = humanUser.prompt
+	s := spinner.New()
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	return chatLog{
 		userLines:   []string{},
 		botLines:    []string{},
 		currentLine: userInput,
 		quitting:    false,
+		spinner:     s,
 	}
 }
 
+func isUserTurn(m chatLog) bool {
+	return len(m.userLines) == len(m.botLines)
+}
+
+func isBotTurn(m chatLog) bool {
+	return !isUserTurn(m)
+}
+
 func (m chatLog) Init() tea.Cmd {
-	return textinput.Blink
+	return m.spinner.Tick
 }
 
 func WriteLine(sb *strings.Builder, message string, user User) {
@@ -49,12 +64,18 @@ func (m chatLog) View() string {
 	WriteBotLine(&sb, "Hello!")
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, message)
-		WriteBotLine(&sb, m.botLines[index])
+		if index < len(m.botLines) {
+			WriteBotLine(&sb, m.botLines[index])
+		}
 	}
 	if m.quitting {
 		WriteBotLine(&sb, "Goodbye!")
 	} else {
-		sb.WriteString(humanUser.style.Render(m.currentLine.View()))
+		if isBotTurn(m) {
+			sb.WriteString(m.spinner.View())
+		} else {
+			sb.WriteString(humanUser.style.Render(m.currentLine.View()))
+		}
 	}
 	return sb.String()
 }
@@ -73,15 +94,22 @@ func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, SayGoodBye()
 
 		case "enter":
-			m.userLines = append(m.userLines, m.currentLine.Value())
-			m.currentLine = textinput.New()
-			m.botLines = append(m.botLines, "That's so cool!")
+			if isUserTurn(m) {
+				m.userLines = append(m.userLines, m.currentLine.Value())
+				m.currentLine = textinput.New()
+				return m, DoBotMessage
+			}
+			//m.botLines = append(m.botLines, "That's so cool!")
 			return m, cmd
 		}
 		if !m.currentLine.Focused() {
 			m.currentLine.Focus()
 		}
 		m.currentLine, cmd = m.currentLine.Update(msg)
+	case botMsg:
+		m.botLines = append(m.botLines, string(msg))
+	default:
+		m.spinner, cmd = m.spinner.Update(msg)
 	}
 	return m, cmd
 }
