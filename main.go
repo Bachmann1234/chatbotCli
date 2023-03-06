@@ -97,7 +97,7 @@ func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if isUserTurn(m) {
 				m.userLines = append(m.userLines, m.currentLine.Value())
 				m.currentLine = textinput.New()
-				return m, DoBotMessage
+				return m, m.DoBotMessage
 			}
 			//m.botLines = append(m.botLines, "That's so cool!")
 			return m, cmd

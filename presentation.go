@@ -25,3 +25,5 @@ var humanUser = User{
 	prompt: UserPrompt,
 	style:  UserStyle,
 }
+
+var SystemMsg = ChatGBTMessage{"You are a helpful assistant", "system"}
