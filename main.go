@@ -12,16 +12,17 @@ import (
 )
 
 type chatModel struct {
-	userLines   []string
-	botLines    []string
-	currentLine textinput.Model
-	quitting    bool
-	spinner     spinner.Model
-	width       int
-	height      int
+	userLines    []string
+	botLines     []string
+	currentLine  textinput.Model
+	quitting     bool
+	spinner      spinner.Model
+	width        int
+	height       int
+	systemPrompt string
 }
 
-func initialModel() chatModel {
+func initialModel(systemPrompt string) chatModel {
 	userInput := textinput.New()
 	userInput.TextStyle = humanUser.style
 	userInput.Prompt = humanUser.prompt
@@ -29,11 +30,12 @@ func initialModel() chatModel {
 	s.Spinner = spinner.Points
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	return chatModel{
-		userLines:   []string{},
-		botLines:    []string{},
-		currentLine: userInput,
-		quitting:    false,
-		spinner:     s,
+		userLines:    []string{},
+		botLines:     []string{},
+		currentLine:  userInput,
+		quitting:     false,
+		spinner:      s,
+		systemPrompt: systemPrompt,
 	}
 }
 
@@ -125,7 +127,11 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
+	systemPrompt := "You are a helpful assistant"
+	if len(os.Args) >= 2 {
+		systemPrompt = os.Args[1]
+	}
+	p := tea.NewProgram(initialModel(systemPrompt))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)

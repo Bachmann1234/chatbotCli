@@ -17,7 +17,7 @@ func (m chatModel) DoBotMessage() tea.Msg {
 	client := &http.Client{}
 	chatGbtRequest := ChatGBTRequest{
 		Model:    "gpt-3.5-turbo",
-		Messages: constructMessages(m.userLines, m.botLines),
+		Messages: constructMessages(m.userLines, m.botLines, m.systemPrompt),
 	}
 	postBody, err := json.Marshal(chatGbtRequest)
 	if err != nil {
@@ -65,9 +65,9 @@ type ChatGBTMessage struct {
 	Role    string `json:"role"`
 }
 
-func constructMessages(userLines []string, botLines []string) []ChatGBTMessage {
+func constructMessages(userLines []string, botLines []string, systemPrompt string) []ChatGBTMessage {
 	var messages []ChatGBTMessage
-	messages = append(messages, SystemMsg)
+	messages = append(messages, ChatGBTMessage{systemPrompt, "system"})
 	for i := 0; i < len(userLines); i++ {
 		messages = append(messages, ChatGBTMessage{userLines[i], "user"})
 		if i < len(botLines) {
