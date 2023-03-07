@@ -6,26 +6,29 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 	"os"
 	"strings"
 )
 
-type chatLog struct {
+type chatModel struct {
 	userLines   []string
 	botLines    []string
 	currentLine textinput.Model
 	quitting    bool
 	spinner     spinner.Model
+	width       int
+	height      int
 }
 
-func initialModel() chatLog {
+func initialModel() chatModel {
 	userInput := textinput.New()
 	userInput.TextStyle = humanUser.style
 	userInput.Prompt = humanUser.prompt
 	s := spinner.New()
 	s.Spinner = spinner.Points
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	return chatLog{
+	return chatModel{
 		userLines:   []string{},
 		botLines:    []string{},
 		currentLine: userInput,
@@ -34,15 +37,15 @@ func initialModel() chatLog {
 	}
 }
 
-func isUserTurn(m chatLog) bool {
+func isUserTurn(m chatModel) bool {
 	return len(m.userLines) == len(m.botLines)
 }
 
-func isBotTurn(m chatLog) bool {
+func isBotTurn(m chatModel) bool {
 	return !isUserTurn(m)
 }
 
-func (m chatLog) Init() tea.Cmd {
+func (m chatModel) Init() tea.Cmd {
 	return m.spinner.Tick
 }
 
@@ -59,7 +62,7 @@ func WriteBotLine(sb *strings.Builder, message string) {
 	WriteLine(sb, message, botUser)
 }
 
-func (m chatLog) View() string {
+func (m chatModel) View() string {
 	var sb strings.Builder
 	WriteBotLine(&sb, "Hello!")
 	for index, message := range m.userLines {
@@ -77,10 +80,14 @@ func (m chatLog) View() string {
 			sb.WriteString(humanUser.style.Render(m.currentLine.View()))
 		}
 	}
-	return sb.String()
+	width := m.width
+	if width > maxWidth {
+		width = maxWidth
+	}
+	return wordwrap.String(sb.String(), width)
 }
 
-func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd = nil
 	switch msg := msg.(type) {
 
@@ -108,6 +115,9 @@ func (m chatLog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentLine, cmd = m.currentLine.Update(msg)
 	case botMsg:
 		m.botLines = append(m.botLines, string(msg))
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	default:
 		m.spinner, cmd = m.spinner.Update(msg)
 	}

@@ -13,7 +13,7 @@ func SayGoodBye() tea.Cmd {
 	return tea.Quit
 }
 
-func (m chatLog) DoBotMessage() tea.Msg {
+func (m chatModel) DoBotMessage() tea.Msg {
 	client := &http.Client{}
 	chatGbtRequest := ChatGBTRequest{
 		Model:    "gpt-3.5-turbo",
