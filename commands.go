@@ -11,11 +11,11 @@ import (
 
 func (m chatModel) formatChatForFile() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("System Prompt: %s\n", m.systemPrompt))
+	sb.WriteString(fmt.Sprintf("System Prompt: %s\n***\n\n", m.systemPrompt))
 	for i := 0; i < len(m.userLines); i++ {
-		sb.WriteString(fmt.Sprintf("%s%s\n", humanUser.prompt, m.userLines[i]))
+		sb.WriteString(fmt.Sprintf("%s%s\n\n", humanUser.prompt, m.userLines[i]))
 		if i < len(m.botLines) {
-			sb.WriteString(fmt.Sprintf("%s%s\nWhat", botUser.prompt, m.botLines[i]))
+			sb.WriteString(fmt.Sprintf("%s%s\n\n", botUser.prompt, m.botLines[i]))
 		}
 	}
 	return sb.String()
