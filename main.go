@@ -102,7 +102,7 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "ctrl+c":
 			m.quitting = true
-			return m, SayGoodBye()
+			return m, m.WriteChatToFile()
 
 		case "enter":
 			if isUserTurn(m) {
