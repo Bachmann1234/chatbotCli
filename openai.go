@@ -8,8 +8,7 @@ import (
 	"os"
 )
 
-const maxTokens = 4_096
-const tokenThreshold = 3_700
+const tokenThreshold = 3_700 // Max tokens is 4,096. We need some buffer for the response
 
 type ChatGBTRequest struct {
 	Model    string           `json:"model"`
