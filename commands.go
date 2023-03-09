@@ -11,5 +11,6 @@ func SayGoodBye() tea.Cmd {
 type botMsg string
 
 func (m chatModel) DoBotMessage() tea.Msg {
-	return botMsg(getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt))
+	chatGbtResponse := getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt)
+	return botMsg(chatGbtResponse.Choices[0].Message.Content)
 }

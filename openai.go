@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+const maxTokens = 4_096
+
 type ChatGBTRequest struct {
 	Model    string           `json:"model"`
 	Messages []ChatGBTMessage `json:"messages"`
@@ -38,7 +40,7 @@ type ChatGBTUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func getChatGBTResponse(userLines []string, botLines []string, systemPrompt string) string {
+func getChatGBTResponse(userLines []string, botLines []string, systemPrompt string) ChatGBTResponse {
 	client := &http.Client{}
 	chatGbtRequest := ChatGBTRequest{
 		Model:    "gpt-3.5-turbo",
@@ -70,12 +72,12 @@ func getChatGBTResponse(userLines []string, botLines []string, systemPrompt stri
 	if err != nil {
 		panic(err)
 	}
-	var data ChatGBTResponse
-	err = json.Unmarshal(body, &data)
+	var chatGBTResponse ChatGBTResponse
+	err = json.Unmarshal(body, &chatGBTResponse)
 	if err != nil {
 		panic(err)
 	}
-	return data.Choices[0].Message.Content
+	return chatGBTResponse
 }
 
 func constructMessages(userLines []string, botLines []string, systemPrompt string) []ChatGBTMessage {
