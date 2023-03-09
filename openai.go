@@ -9,6 +9,7 @@ import (
 )
 
 const maxTokens = 4_096
+const tokenThreshold = 3_700
 
 type ChatGBTRequest struct {
 	Model    string           `json:"model"`
@@ -40,11 +41,11 @@ type ChatGBTUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func getChatGBTResponse(userLines []string, botLines []string, systemPrompt string) ChatGBTResponse {
+func getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse {
 	client := &http.Client{}
 	chatGbtRequest := ChatGBTRequest{
 		Model:    "gpt-3.5-turbo",
-		Messages: constructMessages(userLines, botLines, systemPrompt),
+		Messages: constructMessages(userLines, botLines, systemPrompt, linesToDrop),
 	}
 	postBody, err := json.Marshal(chatGbtRequest)
 	if err != nil {
@@ -80,10 +81,10 @@ func getChatGBTResponse(userLines []string, botLines []string, systemPrompt stri
 	return chatGBTResponse
 }
 
-func constructMessages(userLines []string, botLines []string, systemPrompt string) []ChatGBTMessage {
+func constructMessages(userLines []string, botLines []string, systemPrompt string, linesToDrop int) []ChatGBTMessage {
 	var messages []ChatGBTMessage
 	messages = append(messages, ChatGBTMessage{systemPrompt, "system"})
-	for i := 0; i < len(userLines); i++ {
+	for i := linesToDrop; i < len(userLines); i++ {
 		messages = append(messages, ChatGBTMessage{userLines[i], "user"})
 		if i < len(botLines) {
 			messages = append(messages, ChatGBTMessage{botLines[i], "assistant"})

@@ -12,14 +12,15 @@ import (
 )
 
 type chatModel struct {
-	userLines    []string
-	botLines     []string
-	currentLine  textinput.Model
-	quitting     bool
-	spinner      spinner.Model
-	width        int
-	height       int
-	systemPrompt string
+	userLines                    []string
+	botLines                     []string
+	currentLine                  textinput.Model
+	quitting                     bool
+	spinner                      spinner.Model
+	width                        int
+	height                       int
+	systemPrompt                 string
+	linesToRemoveFromChatRequest int
 }
 
 func initialModel(systemPrompt string) chatModel {
@@ -30,12 +31,13 @@ func initialModel(systemPrompt string) chatModel {
 	s.Spinner = spinner.Points
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	return chatModel{
-		userLines:    []string{},
-		botLines:     []string{},
-		currentLine:  userInput,
-		quitting:     false,
-		spinner:      s,
-		systemPrompt: systemPrompt,
+		userLines:                    []string{},
+		botLines:                     []string{},
+		currentLine:                  userInput,
+		quitting:                     false,
+		spinner:                      s,
+		systemPrompt:                 systemPrompt,
+		linesToRemoveFromChatRequest: 0,
 	}
 }
 

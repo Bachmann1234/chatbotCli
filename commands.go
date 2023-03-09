@@ -11,6 +11,10 @@ func SayGoodBye() tea.Cmd {
 type botMsg string
 
 func (m chatModel) DoBotMessage() tea.Msg {
-	chatGbtResponse := getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt)
+	chatGbtResponse := getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt, m.linesToRemoveFromChatRequest)
+	if chatGbtResponse.Usage.TotalTokens > tokenThreshold {
+		m.linesToRemoveFromChatRequest += 1
+	}
+
 	return botMsg(chatGbtResponse.Choices[0].Message.Content)
 }
