@@ -35,13 +35,13 @@ func (m chatModel) WriteChatToFile() tea.Cmd {
 	return tea.Quit
 }
 
-type botMsg string
+type botMsg ChatGBTResponse
 
 func (m chatModel) DoBotMessage() tea.Msg {
-	chatGbtResponse := getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt, m.linesToRemoveFromChatRequest)
+	chatGbtResponse := m.openAIClient.getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt, m.linesToRemoveFromChatRequest)
 	if chatGbtResponse.Usage.TotalTokens > m.tokenThresholdBeforeDropping {
 		m.linesToRemoveFromChatRequest += 1
 	}
 
-	return botMsg(chatGbtResponse.Choices[0].Message.Content)
+	return botMsg(chatGbtResponse)
 }

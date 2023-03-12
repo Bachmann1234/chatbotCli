@@ -5,8 +5,15 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 )
+
+type OpenAIClientI interface {
+	getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse
+}
+
+type OpenAIClient struct {
+	apiKey string
+}
 
 const DefaultTokenThreshold = 3_700 // Max tokens is 4,096. We need some buffer for the response
 
@@ -40,7 +47,7 @@ type ChatGBTUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse {
+func (openAIClient OpenAIClient) getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse {
 	client := &http.Client{}
 	chatGbtRequest := ChatGBTRequest{
 		Model:    "gpt-3.5-turbo",
@@ -56,7 +63,7 @@ func getChatGBTResponse(userLines []string, botLines []string, systemPrompt stri
 		"https://api.openai.com/v1/chat/completions",
 		requestBody,
 	)
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("OPENAI_API_KEY"))
+	req.Header.Add("Authorization", "Bearer "+openAIClient.apiKey)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {

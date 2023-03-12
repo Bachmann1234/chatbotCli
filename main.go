@@ -22,6 +22,7 @@ type chatModel struct {
 	systemPrompt                 string
 	linesToRemoveFromChatRequest int
 	tokenThresholdBeforeDropping int
+	openAIClient                 OpenAIClientI
 }
 
 func initialModel(systemPrompt string) chatModel {
@@ -40,6 +41,9 @@ func initialModel(systemPrompt string) chatModel {
 		systemPrompt:                 systemPrompt,
 		linesToRemoveFromChatRequest: 0,
 		tokenThresholdBeforeDropping: DefaultTokenThreshold,
+		openAIClient: OpenAIClient{
+			apiKey: os.Getenv("OPENAI_API_KEY"),
+		},
 	}
 }
 
@@ -112,7 +116,6 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentLine = textinput.New()
 				return m, m.DoBotMessage
 			}
-			//m.botLines = append(m.botLines, "That's so cool!")
 			return m, cmd
 		}
 		if !m.currentLine.Focused() {
@@ -120,7 +123,10 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.currentLine, cmd = m.currentLine.Update(msg)
 	case botMsg:
-		m.botLines = append(m.botLines, string(msg))
+		m.botLines = append(m.botLines, msg.Choices[0].Message.Content)
+		if msg.Usage.TotalTokens > m.tokenThresholdBeforeDropping {
+			m.linesToRemoveFromChatRequest += 1
+		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
