@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -74,7 +75,7 @@ func WriteBotLine(sb *strings.Builder, message string) {
 
 func (m chatModel) View() string {
 	var sb strings.Builder
-	WriteBotLine(&sb, "Hello!")
+	WriteBotLine(&sb, fmt.Sprintf("Prompt: %s", m.systemPrompt))
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, message)
 		if index < len(m.botLines) {
@@ -137,11 +138,13 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	systemPrompt := "You are a helpful assistant"
-	if len(os.Args) >= 2 {
-		systemPrompt = os.Args[1]
-	}
-	p := tea.NewProgram(initialModel(systemPrompt))
+	systemPrompt := flag.String(
+		"prompt",
+		"You are a helpful assistant",
+		"The initial prompted hinting at the personality of the chatbot",
+	)
+	flag.Parse()
+	p := tea.NewProgram(initialModel(*systemPrompt))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)
