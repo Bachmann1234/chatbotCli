@@ -21,6 +21,7 @@ type chatModel struct {
 	height                       int
 	systemPrompt                 string
 	linesToRemoveFromChatRequest int
+	tokenThresholdBeforeDropping int
 }
 
 func initialModel(systemPrompt string) chatModel {
@@ -38,6 +39,7 @@ func initialModel(systemPrompt string) chatModel {
 		spinner:                      s,
 		systemPrompt:                 systemPrompt,
 		linesToRemoveFromChatRequest: 0,
+		tokenThresholdBeforeDropping: DefaultTokenThreshold,
 	}
 }
 

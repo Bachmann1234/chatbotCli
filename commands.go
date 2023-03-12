@@ -39,7 +39,7 @@ type botMsg string
 
 func (m chatModel) DoBotMessage() tea.Msg {
 	chatGbtResponse := getChatGBTResponse(m.userLines, m.botLines, m.systemPrompt, m.linesToRemoveFromChatRequest)
-	if chatGbtResponse.Usage.TotalTokens > tokenThreshold {
+	if chatGbtResponse.Usage.TotalTokens > m.tokenThresholdBeforeDropping {
 		m.linesToRemoveFromChatRequest += 1
 	}
 
