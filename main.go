@@ -10,6 +10,7 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 	"os"
 	"strings"
+	"time"
 )
 
 type chatModel struct {
@@ -24,6 +25,7 @@ type chatModel struct {
 	linesToRemoveFromChatRequest int
 	tokenThresholdBeforeDropping int
 	openAIClient                 OpenAIClientI
+	chatStartTime                time.Time
 }
 
 func initialModel(systemPrompt string) chatModel {
@@ -45,6 +47,7 @@ func initialModel(systemPrompt string) chatModel {
 		openAIClient: OpenAIClient{
 			apiKey: os.Getenv("OPENAI_API_KEY"),
 		},
+		chatStartTime: time.Now(),
 	}
 }
 
