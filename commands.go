@@ -5,6 +5,7 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -22,7 +23,10 @@ func (m chatModel) formatChatForFile() string {
 }
 
 func (m chatModel) WriteChatToFile() tea.Cmd {
-	f, _ := os.Create(fmt.Sprintf("./%d.txt", time.Now().Unix()))
+	now := time.Now()
+	filename := fmt.Sprintf("%s-%d-%d-%d.txt", now.Format("2006-January-02"), now.Hour(), now.Minute(), now.Second())
+	path := filepath.Join(os.Getenv("CHATBOT_LOGS"), filename)
+	f, _ := os.Create(path)
 	w := bufio.NewWriter(f)
 	_, err := w.WriteString(m.formatChatForFile())
 	if err != nil {
