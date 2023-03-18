@@ -22,8 +22,6 @@ type OpenAIClient struct {
 	apiKey string
 }
 
-const DefaultTokenThreshold = 3_700 // Max tokens is 4,096. We need some buffer for the response
-
 type GPTModel struct {
 	Name      string
 	MaxTokens int
@@ -64,7 +62,7 @@ func getModel(name string) GPTModel {
 	case "3.5":
 		return GPTModel{
 			Name:      "gpt-3.5-turbo",
-			MaxTokens: 3_700,
+			MaxTokens: 4_096,
 		}
 	case "4":
 		return GPTModel{
