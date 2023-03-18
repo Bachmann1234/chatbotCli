@@ -70,7 +70,12 @@ func getModel(name string) GPTModel {
 	}
 }
 
-func (openAIClient OpenAIClient) getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse {
+func (openAIClient OpenAIClient) getChatGPTResponse(
+	userLines []string,
+	botLines []string,
+	systemPrompt string,
+	linesToDrop int,
+) ChatGPTResponse {
 	client := &http.Client{}
 	chatGptRequest := ChatGPTRequest{
 		Model:    "gpt-3.5-turbo",

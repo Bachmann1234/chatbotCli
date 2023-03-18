@@ -10,7 +10,12 @@ type MockOpenAIClient struct {
 	apiKey string
 }
 
-func (openAIClient MockOpenAIClient) getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse {
+func (openAIClient MockOpenAIClient) getChatGPTResponse(
+	userLines []string,
+	botLines []string,
+	systemPrompt string,
+	linesToDrop int,
+) ChatGPTResponse {
 	return ChatGPTResponse{
 		Id:      "bla",
 		Object:  "bla",
