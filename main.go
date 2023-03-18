@@ -143,7 +143,7 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func main() {
 	systemPrompt := flag.String(
 		"prompt",
-		"You are a helpful assistant",
+		"You are a helpful assistant. Respond in a way that renders nicely in Markdown.",
 		"The initial prompted hinting at the personality of the chatbot",
 	)
 	modelName := flag.String(
