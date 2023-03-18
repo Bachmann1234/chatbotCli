@@ -146,8 +146,13 @@ func main() {
 		"You are a helpful assistant",
 		"The initial prompted hinting at the personality of the chatbot",
 	)
+	modelName := flag.String(
+		"model",
+		"3.5",
+		"which model to use, 3.5 or 4 right now",
+	)
 	flag.Parse()
-	p := tea.NewProgram(initialModel(*systemPrompt, "3.5"))
+	p := tea.NewProgram(initialModel(*systemPrompt, *modelName))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)

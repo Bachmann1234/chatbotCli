@@ -9,7 +9,13 @@ import (
 )
 
 type OpenAIClientI interface {
-	getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse
+	getChatGPTResponse(
+		userLines []string,
+		botLines []string,
+		systemPrompt string,
+		linesToDrop int,
+		model GPTModel,
+	) ChatGPTResponse
 }
 
 type OpenAIClient struct {
@@ -75,10 +81,11 @@ func (openAIClient OpenAIClient) getChatGPTResponse(
 	botLines []string,
 	systemPrompt string,
 	linesToDrop int,
+	model GPTModel,
 ) ChatGPTResponse {
 	client := &http.Client{}
 	chatGptRequest := ChatGPTRequest{
-		Model:    "gpt-3.5-turbo",
+		Model:    model.Name,
 		Messages: constructMessages(userLines, botLines, systemPrompt, linesToDrop),
 	}
 	postBody, err := json.Marshal(chatGptRequest)

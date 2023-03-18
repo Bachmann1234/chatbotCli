@@ -15,6 +15,7 @@ func (openAIClient MockOpenAIClient) getChatGPTResponse(
 	botLines []string,
 	systemPrompt string,
 	linesToDrop int,
+	model GPTModel,
 ) ChatGPTResponse {
 	return ChatGPTResponse{
 		Id:      "bla",
@@ -57,7 +58,9 @@ func TestIncrementingLinesToRemoveWhenUsedTokensHigh(t *testing.T) {
 				model.userLines,
 				model.botLines,
 				model.systemPrompt,
-				model.linesToRemoveFromChatRequest),
+				model.linesToRemoveFromChatRequest,
+				model.GPTModel,
+			),
 		),
 	)
 

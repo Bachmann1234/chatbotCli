@@ -65,7 +65,13 @@ func (m chatModel) WriteChatToFile() tea.Cmd {
 type botMsg ChatGPTResponse
 
 func (m chatModel) DoBotMessage() tea.Msg {
-	chatGptResponse := m.openAIClient.getChatGPTResponse(m.userLines, m.botLines, m.systemPrompt, m.linesToRemoveFromChatRequest)
+	chatGptResponse := m.openAIClient.getChatGPTResponse(
+		m.userLines,
+		m.botLines,
+		m.systemPrompt,
+		m.linesToRemoveFromChatRequest,
+		m.GPTModel,
+	)
 	if chatGptResponse.Usage.TotalTokens > m.GPTModel.MaxTokens {
 		m.linesToRemoveFromChatRequest += 1
 	}
