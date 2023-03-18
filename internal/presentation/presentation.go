@@ -1,8 +1,8 @@
-package main
+package presentation
 
 import "github.com/charmbracelet/lipgloss"
 
-const maxWidth = 80
+const MaxWidth = 80
 const CompPrompt = "◎ "
 const UserPrompt = "▶ "
 
@@ -13,16 +13,16 @@ var UserStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#fc0ff5")).PaddingTop(1)
 
 type User struct {
-	prompt string
-	style  lipgloss.Style
+	Prompt string
+	Style  lipgloss.Style
 }
 
-var botUser = User{
-	prompt: CompPrompt,
-	style:  BotStyle,
+var BotUser = User{
+	Prompt: CompPrompt,
+	Style:  BotStyle,
 }
 
-var humanUser = User{
-	prompt: UserPrompt,
-	style:  UserStyle,
+var HumanUser = User{
+	Prompt: UserPrompt,
+	Style:  UserStyle,
 }
