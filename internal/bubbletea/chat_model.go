@@ -71,6 +71,9 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 func GetModel(name string) bots.ChatBotI {
 	model := openai.GetGPTModel(name)
 	if model == nil {
+		model = bots.GetChatBot(name)
+	}
+	if model == nil {
 		panic(fmt.Sprintf("Unknown model %s", name))
 	}
 	return model
