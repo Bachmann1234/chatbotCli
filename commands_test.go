@@ -10,20 +10,20 @@ type MockOpenAIClient struct {
 	apiKey string
 }
 
-func (openAIClient MockOpenAIClient) getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse {
-	return ChatGBTResponse{
+func (openAIClient MockOpenAIClient) getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse {
+	return ChatGPTResponse{
 		Id:      "bla",
 		Object:  "bla",
 		Created: 0,
-		Choices: []ChatGBTChoice{{
+		Choices: []ChatGPTChoice{{
 			Index: 0,
-			Message: ChatGBTMessage{
+			Message: ChatGPTMessage{
 				Content: "Howdy!",
 				Role:    "assistant",
 			},
 			FinishReason: "stop",
 		}},
-		Usage: ChatGBTUsage{
+		Usage: ChatGPTUsage{
 			PromptTokens:     4000,
 			CompletionTokens: 4000,
 			TotalTokens:      8000,
@@ -40,7 +40,7 @@ func TestIncrementingLinesToRemoveWhenUsedTokensHigh(t *testing.T) {
 		spinner:                      spinner.New(),
 		systemPrompt:                 "System prompt",
 		linesToRemoveFromChatRequest: 0,
-		tokenThresholdBeforeDropping: DefaultTokenThreshold,
+		GPTModel:                     getModel("3.5"),
 		openAIClient: MockOpenAIClient{
 			apiKey: "Test",
 		},
@@ -48,7 +48,7 @@ func TestIncrementingLinesToRemoveWhenUsedTokensHigh(t *testing.T) {
 
 	newModel, cmd := model.Update(
 		botMsg(
-			model.openAIClient.getChatGBTResponse(
+			model.openAIClient.getChatGPTResponse(
 				model.userLines,
 				model.botLines,
 				model.systemPrompt,

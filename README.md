@@ -1,7 +1,7 @@
 # chatbotCli
-Interface to chat GBT using Bubbletea
+Interface to chat GPT using Bubbletea
 
-A chance to play with [BubbleTea](https://github.com/charmbracelet/bubbletea), [Golang](https://go.dev/), and [ChatGBT](https://openai.com/blog/chatgpt)
+A chance to play with [BubbleTea](https://github.com/charmbracelet/bubbletea), [Golang](https://go.dev/), and [ChatGPT](https://openai.com/blog/chatgpt)
 
 Requires the following environment variable to be set:
 
@@ -9,7 +9,7 @@ Requires the following environment variable to be set:
 
 You can also set `CHATBOT_LOGS` this is where chat logs will save.
 
-The program will will be a conversation between you and chatgbt. You can customize the prompt by passing in the -prompt flag
+The program will will be a conversation between you and chatgpt. You can customize the prompt by passing in the -prompt flag
 
 ```bash
 chatbotCli -prompt "You are the coolest bot in the world"

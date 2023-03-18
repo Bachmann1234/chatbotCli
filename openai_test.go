@@ -11,7 +11,7 @@ func TestConstructMessages(t *testing.T) {
 		0,
 	)
 
-	expected := []ChatGBTMessage{
+	expected := []ChatGPTMessage{
 		{"System Prompt", "system"},
 		{"Hello", "user"},
 		{"Howdy", "assistant"},
@@ -40,7 +40,7 @@ func TestConstructMessagesDropOne(t *testing.T) {
 		1,
 	)
 
-	expected := []ChatGBTMessage{
+	expected := []ChatGPTMessage{
 		{"System Prompt", "system"},
 		{"How are you?", "user"},
 		{"good!", "assistant"},
@@ -67,7 +67,7 @@ func TestConstructMessagesDropThree(t *testing.T) {
 		3,
 	)
 
-	expected := []ChatGBTMessage{
+	expected := []ChatGPTMessage{
 		{"System Prompt", "system"},
 	}
 

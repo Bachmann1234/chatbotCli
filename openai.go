@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
 
 type OpenAIClientI interface {
-	getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse
+	getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse
 }
 
 type OpenAIClient struct {
@@ -17,43 +18,65 @@ type OpenAIClient struct {
 
 const DefaultTokenThreshold = 3_700 // Max tokens is 4,096. We need some buffer for the response
 
-type ChatGBTRequest struct {
-	Model    string           `json:"model"`
-	Messages []ChatGBTMessage `json:"messages"`
+type GPTModel struct {
+	Name      string
+	MaxTokens int
 }
 
-type ChatGBTMessage struct {
+type ChatGPTRequest struct {
+	Model    string           `json:"model"`
+	Messages []ChatGPTMessage `json:"messages"`
+}
+
+type ChatGPTMessage struct {
 	Content string `json:"content"`
 	Role    string `json:"role"`
 }
 
-type ChatGBTResponse struct {
+type ChatGPTResponse struct {
 	Id      string          `json:"id"`
 	Object  string          `json:"object"`
 	Created uint64          `json:"created"`
-	Choices []ChatGBTChoice `json:"choices"`
-	Usage   ChatGBTUsage    `json:"usage"`
+	Choices []ChatGPTChoice `json:"choices"`
+	Usage   ChatGPTUsage    `json:"usage"`
 }
 
-type ChatGBTChoice struct {
+type ChatGPTChoice struct {
 	Index        int            `json:"index"`
-	Message      ChatGBTMessage `json:"message"`
+	Message      ChatGPTMessage `json:"message"`
 	FinishReason string         `json:"finish_reason"`
 }
 
-type ChatGBTUsage struct {
+type ChatGPTUsage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func (openAIClient OpenAIClient) getChatGBTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGBTResponse {
+func getModel(name string) GPTModel {
+	switch name {
+	case "3.5":
+		return GPTModel{
+			Name:      "gpt-3.5-turbo",
+			MaxTokens: 3_700,
+		}
+	case "4":
+		return GPTModel{
+			Name:      "gpt-4",
+			MaxTokens: 8_192,
+		}
+	default:
+		panic(fmt.Sprintf("Invalid model name %s", name))
+	}
+}
+
+func (openAIClient OpenAIClient) getChatGPTResponse(userLines []string, botLines []string, systemPrompt string, linesToDrop int) ChatGPTResponse {
 	client := &http.Client{}
-	chatGbtRequest := ChatGBTRequest{
+	chatGptRequest := ChatGPTRequest{
 		Model:    "gpt-3.5-turbo",
 		Messages: constructMessages(userLines, botLines, systemPrompt, linesToDrop),
 	}
-	postBody, err := json.Marshal(chatGbtRequest)
+	postBody, err := json.Marshal(chatGptRequest)
 	if err != nil {
 		panic(err)
 	}
@@ -79,21 +102,21 @@ func (openAIClient OpenAIClient) getChatGBTResponse(userLines []string, botLines
 	if err != nil {
 		panic(err)
 	}
-	var chatGBTResponse ChatGBTResponse
-	err = json.Unmarshal(body, &chatGBTResponse)
+	var chatGPTResponse ChatGPTResponse
+	err = json.Unmarshal(body, &chatGPTResponse)
 	if err != nil {
 		panic(err)
 	}
-	return chatGBTResponse
+	return chatGPTResponse
 }
 
-func constructMessages(userLines []string, botLines []string, systemPrompt string, linesToDrop int) []ChatGBTMessage {
-	var messages []ChatGBTMessage
-	messages = append(messages, ChatGBTMessage{systemPrompt, "system"})
+func constructMessages(userLines []string, botLines []string, systemPrompt string, linesToDrop int) []ChatGPTMessage {
+	var messages []ChatGPTMessage
+	messages = append(messages, ChatGPTMessage{systemPrompt, "system"})
 	for i := linesToDrop; i < len(userLines); i++ {
-		messages = append(messages, ChatGBTMessage{userLines[i], "user"})
+		messages = append(messages, ChatGPTMessage{userLines[i], "user"})
 		if i < len(botLines) {
-			messages = append(messages, ChatGBTMessage{botLines[i], "assistant"})
+			messages = append(messages, ChatGPTMessage{botLines[i], "assistant"})
 		}
 	}
 	return messages

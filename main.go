@@ -23,12 +23,12 @@ type chatModel struct {
 	height                       int
 	systemPrompt                 string
 	linesToRemoveFromChatRequest int
-	tokenThresholdBeforeDropping int
 	openAIClient                 OpenAIClientI
 	chatStartTime                time.Time
+	GPTModel                     GPTModel
 }
 
-func initialModel(systemPrompt string) chatModel {
+func initialModel(systemPrompt string, modelName string) chatModel {
 	userInput := textinput.New()
 	userInput.TextStyle = humanUser.style
 	userInput.Prompt = humanUser.prompt
@@ -43,7 +43,7 @@ func initialModel(systemPrompt string) chatModel {
 		spinner:                      s,
 		systemPrompt:                 systemPrompt,
 		linesToRemoveFromChatRequest: 0,
-		tokenThresholdBeforeDropping: DefaultTokenThreshold,
+		GPTModel:                     getModel(modelName),
 		openAIClient: OpenAIClient{
 			apiKey: os.Getenv("OPENAI_API_KEY"),
 		},
@@ -128,7 +128,7 @@ func (m chatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentLine, cmd = m.currentLine.Update(msg)
 	case botMsg:
 		m.botLines = append(m.botLines, msg.Choices[0].Message.Content)
-		if msg.Usage.TotalTokens > m.tokenThresholdBeforeDropping {
+		if msg.Usage.TotalTokens > m.GPTModel.MaxTokens {
 			m.linesToRemoveFromChatRequest += 1
 		}
 	case tea.WindowSizeMsg:
@@ -147,7 +147,7 @@ func main() {
 		"The initial prompted hinting at the personality of the chatbot",
 	)
 	flag.Parse()
-	p := tea.NewProgram(initialModel(*systemPrompt))
+	p := tea.NewProgram(initialModel(*systemPrompt, "3.5"))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)
