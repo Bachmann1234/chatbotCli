@@ -109,8 +109,10 @@ func isBotTurn(m ChatModel) bool {
 
 func (m ChatModel) View() string {
 	var sb strings.Builder
+	sb.WriteString("\n")
 	if isBotTurn(m) {
 		sb.WriteString(m.spinner.View())
+		sb.WriteString("\n")
 	} else {
 		sb.WriteString(m.metadata.View())
 	}
