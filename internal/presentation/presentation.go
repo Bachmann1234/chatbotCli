@@ -6,6 +6,9 @@ const MaxWidth = 80
 const CompPrompt = "◎ "
 const UserPrompt = "▶ "
 
+var MetadataStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#b8aec8"))
+
 var BotStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#15fd00")).PaddingTop(1)
 

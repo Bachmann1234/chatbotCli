@@ -28,6 +28,7 @@ type ChatModel struct {
 	height        int
 	chatStartTime time.Time
 	chatBot       bots.ChatBotI
+	showMetadata  bool
 }
 
 func WriteLine(sb *strings.Builder, message string, user presentation.User) {
@@ -43,7 +44,7 @@ func WriteBotLine(sb *strings.Builder, message string) {
 	WriteLine(sb, message, presentation.BotUser)
 }
 
-func InitialModel(systemPrompt string, modelName string) ChatModel {
+func InitialModel(systemPrompt string, modelName string, showMetadata bool) ChatModel {
 	userInput := textinput.New()
 	userInput.TextStyle = presentation.HumanUser.Style
 	userInput.Prompt = presentation.HumanUser.Prompt
@@ -59,6 +60,7 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 		spinner:       s,
 		chatBot:       GetModel(modelName),
 		chatStartTime: time.Now(),
+		showMetadata:  showMetadata,
 	}
 }
 
@@ -85,14 +87,26 @@ func isBotTurn(m ChatModel) bool {
 	return !isUserTurn(m)
 }
 
+func writeMetadataAsJsonString(sb *strings.Builder, lastBotLine bots.BotResponse) {
+	sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
+	for key, value := range lastBotLine.Metadata {
+		sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", key, value)))
+	}
+	sb.WriteString("\n")
+}
+
 func (m ChatModel) View() string {
 	var sb strings.Builder
+
 	WriteBotLine(&sb, fmt.Sprintf("Prompt: %s", m.systemPrompt))
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, message)
 		if index < len(m.botLines) {
 			WriteBotLine(&sb, m.botLines[index].Content)
 		}
+	}
+	if m.showMetadata && len(m.botLines) > 0 {
+		writeMetadataAsJsonString(&sb, m.botLines[len(m.botLines)-1])
 	}
 	if m.quitting {
 		WriteBotLine(&sb, "Goodbye!")

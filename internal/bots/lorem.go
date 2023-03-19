@@ -12,7 +12,7 @@ type LoremBot struct {
 }
 
 func (b *LoremBot) GetBotResponse(_ []string, _ []BotResponse, _ string) BotResponse {
-	numSentences := rand.Intn(4) + 1
+	numSentences := rand.Intn(2) + 1
 	return BotResponse{
 		Content: b.loremGenerator.Sentences(numSentences),
 		Metadata: map[string]string{
