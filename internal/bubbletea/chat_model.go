@@ -157,10 +157,10 @@ func (m ChatModel) getFilename() string {
 }
 
 func (m ChatModel) WriteChatToFile() tea.Cmd {
-	now := time.Now()
+	chatTime := m.chatStartTime
 	filename := fmt.Sprintf(
 		"%s-%d-%d-%d-%s.txt",
-		now.Format("2006-January-02"), now.Hour(), now.Minute(), now.Second(), m.getFilename(),
+		chatTime.Format("2006-01-02"), chatTime.Hour(), chatTime.Minute(), chatTime.Second(), m.getFilename(),
 	)
 	path := filepath.Join(os.Getenv("CHATBOT_LOGS"), filename)
 	f, _ := os.Create(path)
