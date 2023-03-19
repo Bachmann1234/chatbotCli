@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 )
 
 type ChatGPTRequest struct {
@@ -42,6 +43,24 @@ type Client struct {
 	ApiKey string
 }
 
+func retry(
+	attempts int,
+	sleep time.Duration,
+	fn func(req *http.Request) (*http.Response, error),
+	req *http.Request,
+) (*http.Response, error) {
+	response, err := fn(req)
+	if err != nil {
+		if attempts--; attempts > 0 {
+			time.Sleep(sleep)
+			sleep *= 2
+			return retry(attempts, sleep, fn, req)
+		}
+		return nil, err
+	}
+	return response, nil
+}
+
 func (openaiClient Client) GetChatGPTResponse(
 	userLines []string,
 	botLines []bots.BotResponse,
@@ -67,7 +86,7 @@ func (openaiClient Client) GetChatGPTResponse(
 	)
 	req.Header.Add("Authorization", "Bearer "+openaiClient.ApiKey)
 	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
+	resp, err := retry(3, 1, client.Do, req)
 	if err != nil {
 		panic(err)
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 	"os"
 	"path/filepath"
 	"strings"
@@ -187,7 +188,7 @@ func (m ChatModel) renderConversation() string {
 	if width > presentation.MaxWidth {
 		width = presentation.MaxWidth
 	}
-	return lipgloss.NewStyle().Width(width).Render(sb.String())
+	return wordwrap.String(sb.String(), width)
 }
 
 func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
