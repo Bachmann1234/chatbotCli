@@ -5,7 +5,12 @@ type ChatBotI interface {
 		userLines []string,
 		botLines []string,
 		systemPrompt string,
-	) string
+	) BotResponse
+}
+
+type BotResponse struct {
+	Content  string
+	Metadata map[string]string
 }
 
 func GetChatBot(name string) ChatBotI {

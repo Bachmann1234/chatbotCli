@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func GetGPTModel(name string) bots.ChatBotI {
@@ -35,13 +36,19 @@ type GPTModel struct {
 	ApiKey    string
 }
 
-func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []string, systemPrompt string) string {
+func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []string, systemPrompt string) bots.BotResponse {
 	chatGPTResponse := gptModel.getChatGPTResponse(
 		userLines,
 		botLines,
 		systemPrompt,
 	)
-	return chatGPTResponse.Choices[0].Message.Content
+	return bots.BotResponse{
+		Content: chatGPTResponse.Choices[0].Message.Content,
+		Metadata: map[string]string{
+			"model":      gptModel.Name,
+			"tokensUsed": strconv.Itoa(chatGPTResponse.Usage.TotalTokens),
+		},
+	}
 }
 
 func (gptModel GPTModel) getChatGPTResponse(

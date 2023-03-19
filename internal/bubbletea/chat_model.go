@@ -17,10 +17,6 @@ import (
 	"time"
 )
 
-type BotMsg struct {
-	Content string
-}
-
 type ChatModel struct {
 	userLines                    []string
 	botLines                     []string
@@ -193,7 +189,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currentLine.Focus()
 		}
 		m.currentLine, cmd = m.currentLine.Update(msg)
-	case BotMsg:
+	case bots.BotResponse:
 		m.botLines = append(m.botLines, msg.Content)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -205,8 +201,5 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ChatModel) DoBotMessage() tea.Msg {
-	chatGptResponse := m.chatBot.GetBotResponse(m.userLines, m.botLines, m.systemPrompt)
-	return BotMsg{
-		Content: chatGptResponse,
-	}
+	return m.chatBot.GetBotResponse(m.userLines, m.botLines, m.systemPrompt)
 }
