@@ -1,12 +1,8 @@
 package openai
 
 import (
-	"bytes"
 	"dev/mattbachmann/chatbotcli/internal/bots"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strconv"
 )
@@ -22,13 +18,17 @@ func GetGPTModel(name string) bots.ChatBotI {
 		return GPTModel{
 			Name:      "gpt-3.5-turbo",
 			MaxTokens: 4_096,
-			ApiKey:    apiKey,
+			Client: Client{
+				ApiKey: apiKey,
+			},
 		}
 	case "gpt4":
 		return GPTModel{
 			Name:      "gpt-4",
 			MaxTokens: 8_192,
-			ApiKey:    apiKey,
+			Client: Client{
+				ApiKey: apiKey,
+			},
 		}
 	default:
 		return nil
@@ -38,19 +38,22 @@ func GetGPTModel(name string) bots.ChatBotI {
 type GPTModel struct {
 	Name      string
 	MaxTokens int
-	ApiKey    string
+	Client    ClientI
 }
 
 func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []bots.BotResponse, systemPrompt string) bots.BotResponse {
-	chatGPTResponse, messagesCut := gptModel.getChatGPTResponse(
+	messagesToCut := determineMessagesToCut(botLines, gptModel.MaxTokens)
+	chatGPTResponse := gptModel.Client.GetChatGPTResponse(
 		userLines,
 		botLines,
 		systemPrompt,
+		messagesToCut,
+		gptModel,
 	)
 	return bots.BotResponse{
 		Content: chatGPTResponse.Choices[0].Message.Content,
 		Metadata: map[string]string{
-			MessagesCut: strconv.Itoa(messagesCut),
+			MessagesCut: strconv.Itoa(messagesToCut),
 			TokensUsed:  strconv.Itoa(chatGPTResponse.Usage.TotalTokens),
 		},
 	}
@@ -75,53 +78,5 @@ func determineMessagesToCut(botLines []bots.BotResponse, maxTokens int) int {
 			messagesToCut += 1
 		}
 	}
-
 	return messagesToCut
-
-}
-
-func (gptModel GPTModel) getChatGPTResponse(
-	userLines []string,
-	botLines []bots.BotResponse,
-	systemPrompt string,
-) (ChatGPTResponse, int) {
-	client := &http.Client{}
-	messagesToCut := determineMessagesToCut(botLines, gptModel.MaxTokens)
-	messages := ConstructMessages(userLines, botLines, systemPrompt, messagesToCut)
-	chatGptRequest := ChatGPTRequest{
-		Model:    gptModel.Name,
-		Messages: messages,
-	}
-	postBody, err := json.Marshal(chatGptRequest)
-	if err != nil {
-		panic(err)
-	}
-	requestBody := bytes.NewBuffer(postBody)
-	req, err := http.NewRequest(
-		"POST",
-		"https://api.openai.com/v1/chat/completions",
-		requestBody,
-	)
-	req.Header.Add("Authorization", "Bearer "+gptModel.ApiKey)
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(resp.Body)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	var chatGPTResponse ChatGPTResponse
-	err = json.Unmarshal(body, &chatGPTResponse)
-	if err != nil {
-		panic(err)
-	}
-	return chatGPTResponse, messagesToCut
 }

@@ -1,6 +1,12 @@
 package openai
 
-import "dev/mattbachmann/chatbotcli/internal/bots"
+import (
+	"bytes"
+	"dev/mattbachmann/chatbotcli/internal/bots"
+	"encoding/json"
+	"io"
+	"net/http"
+)
 
 type ChatGPTRequest struct {
 	Model    string           `json:"model"`
@@ -30,6 +36,57 @@ type ChatGPTUsage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 	TotalTokens      int `json:"total_tokens"`
+}
+
+type Client struct {
+	ApiKey string
+}
+
+func (openaiClient Client) GetChatGPTResponse(
+	userLines []string,
+	botLines []bots.BotResponse,
+	systemPrompt string,
+	messagesToCut int,
+	gptModel GPTModel,
+) ChatGPTResponse {
+	client := &http.Client{}
+	messages := ConstructMessages(userLines, botLines, systemPrompt, messagesToCut)
+	chatGptRequest := ChatGPTRequest{
+		Model:    gptModel.Name,
+		Messages: messages,
+	}
+	postBody, err := json.Marshal(chatGptRequest)
+	if err != nil {
+		panic(err)
+	}
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest(
+		"POST",
+		"https://api.openai.com/v1/chat/completions",
+		requestBody,
+	)
+	req.Header.Add("Authorization", "Bearer "+openaiClient.ApiKey)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	var chatGPTResponse ChatGPTResponse
+	err = json.Unmarshal(body, &chatGPTResponse)
+	if err != nil {
+		panic(err)
+	}
+	return chatGPTResponse
 }
 
 func ConstructMessages(userLines []string, botLines []bots.BotResponse, systemPrompt string, messagesToCut int) []ChatGPTMessage {
