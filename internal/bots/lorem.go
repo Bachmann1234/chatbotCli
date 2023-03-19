@@ -11,7 +11,7 @@ type LoremBot struct {
 	loremGenerator *loremipsum.LoremIpsum
 }
 
-func (b *LoremBot) GetBotResponse(_ []string, _ []string, _ string) BotResponse {
+func (b *LoremBot) GetBotResponse(_ []string, _ []BotResponse, _ string) BotResponse {
 	numSentences := rand.Intn(4) + 1
 	return BotResponse{
 		Content: b.loremGenerator.Sentences(numSentences),

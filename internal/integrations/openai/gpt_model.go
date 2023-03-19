@@ -36,7 +36,7 @@ type GPTModel struct {
 	ApiKey    string
 }
 
-func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []string, systemPrompt string) bots.BotResponse {
+func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []bots.BotResponse, systemPrompt string) bots.BotResponse {
 	chatGPTResponse := gptModel.getChatGPTResponse(
 		userLines,
 		botLines,
@@ -54,7 +54,7 @@ func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []string, s
 
 func (gptModel GPTModel) getChatGPTResponse(
 	userLines []string,
-	botLines []string,
+	botLines []bots.BotResponse,
 	systemPrompt string,
 ) ChatGPTResponse {
 	client := &http.Client{}

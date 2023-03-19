@@ -18,18 +18,16 @@ import (
 )
 
 type ChatModel struct {
-	userLines                    []string
-	botLines                     []string
-	currentLine                  textinput.Model
-	quitting                     bool
-	spinner                      spinner.Model
-	width                        int
-	height                       int
-	systemPrompt                 string
-	linesToRemoveFromChatRequest int
-	openAIClient                 openai.ClientI
-	chatStartTime                time.Time
-	chatBot                      bots.ChatBotI
+	systemPrompt  string
+	userLines     []string
+	botLines      []bots.BotResponse
+	currentLine   textinput.Model
+	quitting      bool
+	spinner       spinner.Model
+	width         int
+	height        int
+	chatStartTime time.Time
+	chatBot       bots.ChatBotI
 }
 
 func WriteLine(sb *strings.Builder, message string, user presentation.User) {
@@ -55,7 +53,7 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 	return ChatModel{
 		systemPrompt:  systemPrompt,
 		userLines:     []string{},
-		botLines:      []string{},
+		botLines:      []bots.BotResponse{},
 		currentLine:   userInput,
 		quitting:      false,
 		spinner:       s,
@@ -93,7 +91,7 @@ func (m ChatModel) View() string {
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, message)
 		if index < len(m.botLines) {
-			WriteBotLine(&sb, m.botLines[index])
+			WriteBotLine(&sb, m.botLines[index].Content)
 		}
 	}
 	if m.quitting {
@@ -190,7 +188,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.currentLine, cmd = m.currentLine.Update(msg)
 	case bots.BotResponse:
-		m.botLines = append(m.botLines, msg.Content)
+		m.botLines = append(m.botLines, msg)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height

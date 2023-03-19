@@ -3,7 +3,7 @@ package bots
 type ChatBotI interface {
 	GetBotResponse(
 		userLines []string,
-		botLines []string,
+		botLines []BotResponse,
 		systemPrompt string,
 	) BotResponse
 }
