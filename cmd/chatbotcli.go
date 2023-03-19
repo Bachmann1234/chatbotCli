@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dev/mattbachmann/chatbotcli/internal/bubbletea"
+	"dev/mattbachmann/chatbotcli/internal/components"
 	"flag"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +23,7 @@ func main() {
 		"which internal to use, gpt3_5, gpt4, or lorem right now. Lorem is just for returning generic text",
 	)
 	flag.Parse()
-	p := tea.NewProgram(bubbletea.InitialModel(*systemPrompt, *modelName))
+	p := tea.NewProgram(components.InitialModel(*systemPrompt, *modelName))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)

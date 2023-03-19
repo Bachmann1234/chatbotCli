@@ -65,13 +65,13 @@ func determineMessagesToCut(botLines []bots.BotResponse, maxTokens int) int {
 		lastBotLine := botLines[len(botLines)-1]
 		lastLinesToCut, err := strconv.Atoi(lastBotLine.Metadata[MessagesCut])
 		if err != nil {
-			panic(fmt.Sprintf("Bad metadata for messagesCut %s", lastBotLine.Metadata[MessagesCut]))
+			panic(fmt.Sprintf("Bad bot_metadata for messagesCut %s", lastBotLine.Metadata[MessagesCut]))
 		}
 		messagesToCut = lastLinesToCut
 
 		lastTokensUsed, err := strconv.Atoi(lastBotLine.Metadata[TokensUsed])
 		if err != nil {
-			panic(fmt.Sprintf("Bad metadata for tokensUsed %s", lastBotLine.Metadata[TokensUsed]))
+			panic(fmt.Sprintf("Bad bot_metadata for tokensUsed %s", lastBotLine.Metadata[TokensUsed]))
 		}
 
 		if lastTokensUsed >= maxTokens-Buffer {

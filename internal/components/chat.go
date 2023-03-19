@@ -1,37 +1,37 @@
-package bubbletea
+package components
 
 import (
 	"bufio"
+	"dev/mattbachmann/chatbotcli/internal/bot_metadata"
 	"dev/mattbachmann/chatbotcli/internal/bots"
 	"dev/mattbachmann/chatbotcli/internal/integrations/openai"
 	"dev/mattbachmann/chatbotcli/internal/presentation"
 	"fmt"
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/reflow/wordwrap"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 )
 
 type ChatModel struct {
-	systemPrompt  string
-	userLines     []string
-	botLines      []bots.BotResponse
-	currentLine   textarea.Model
-	viewport      viewport.Model
-	width         int
-	quitting      bool
-	spinner       spinner.Model
-	chatStartTime time.Time
-	chatBot       bots.ChatBotI
+	systemPrompt   string
+	userLines      []string
+	botLines       []bots.BotResponse
+	currentMessage textarea.Model
+	viewport       viewport.Model
+	metadata       tea.Model
+	width          int
+	quitting       bool
+	spinner        spinner.Model
+	chatStartTime  time.Time
+	chatBot        bots.ChatBotI
+	writingMessage bool
 }
 
 func WriteLine(sb *strings.Builder, message string, user presentation.User) {
@@ -55,42 +55,35 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 	ta := textarea.New()
 	ta.Focus()
 
-	ta.Prompt = presentation.HumanUser.Prompt
-	ta.FocusedStyle.CursorLine = presentation.HumanUser.Style
 	ta.SetWidth(presentation.MaxWidth)
-	ta.SetHeight(3)
+	ta.SetHeight(25)
 	ta.ShowLineNumbers = false
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	vp := viewport.New(presentation.MaxWidth, 10)
-	vp.KeyMap = viewport.KeyMap{
-		Up: key.NewBinding(
-			key.WithKeys("up"),
-			key.WithHelp("↑", "up"),
-		),
-		Down: key.NewBinding(
-			key.WithKeys("down"),
-			key.WithHelp("↓", "down"),
-		),
-	}
-
 	s := spinner.New()
 	s.Spinner = spinner.Points
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	metadata := bot_metadata.New()
+
 	return ChatModel{
-		systemPrompt:  systemPrompt,
-		userLines:     []string{},
-		botLines:      []bots.BotResponse{},
-		currentLine:   ta,
-		viewport:      vp,
-		quitting:      false,
-		spinner:       s,
-		chatBot:       GetModel(modelName),
-		chatStartTime: time.Now(),
+		systemPrompt:   systemPrompt,
+		userLines:      []string{},
+		botLines:       []bots.BotResponse{},
+		metadata:       metadata,
+		currentMessage: ta,
+		viewport:       vp,
+		quitting:       false,
+		spinner:        s,
+		chatBot:        GetAIModel(modelName),
+		chatStartTime:  time.Now(),
+		writingMessage: true,
+		width:          presentation.MaxWidth,
 	}
 }
 
-func GetModel(name string) bots.ChatBotI {
+func GetAIModel(name string) bots.ChatBotI {
 	model := openai.GetGPTModel(name)
 	if model == nil {
 		model = bots.GetChatBot(name)
@@ -113,39 +106,19 @@ func isBotTurn(m ChatModel) bool {
 	return !isUserTurn(m)
 }
 
-func writeMetadataAsJsonString(sb *strings.Builder, lastBotLine *bots.BotResponse) {
-	sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
-
-	if lastBotLine != nil {
-		keys := make([]string, 0, len(lastBotLine.Metadata))
-		for k := range lastBotLine.Metadata {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", k, lastBotLine.Metadata[k])))
-		}
-		sb.WriteString("\n")
-
-	}
-}
-
 func (m ChatModel) View() string {
 	var sb strings.Builder
-	var lastBotLine *bots.BotResponse
-	if len(m.botLines) > 0 {
-		lastBotLine = &m.botLines[len(m.botLines)-1]
-	}
-	writeMetadataAsJsonString(&sb, lastBotLine)
-	sb.WriteString("\n\n")
-	sb.WriteString(m.viewport.View())
-	sb.WriteString("\n\n")
 	if isBotTurn(m) {
 		sb.WriteString(m.spinner.View())
 	} else {
-		sb.WriteString(m.currentLine.View())
+		sb.WriteString(m.metadata.View())
 	}
-	sb.WriteString("\n\n")
+	if m.writingMessage {
+		sb.WriteString("\n")
+		sb.WriteString(m.currentMessage.View())
+	} else {
+		sb.WriteString(m.viewport.View())
+	}
 	return sb.String()
 }
 
@@ -214,7 +187,7 @@ func (m ChatModel) renderConversation() string {
 	if width > presentation.MaxWidth {
 		width = presentation.MaxWidth
 	}
-	return wordwrap.String(sb.String(), width)
+	return lipgloss.NewStyle().Width(width).Render(sb.String())
 }
 
 func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -223,8 +196,12 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		tiCmd tea.Cmd
 		vpCmd tea.Cmd
 	)
-	m.currentLine, tiCmd = m.currentLine.Update(msg)
-	m.viewport, vpCmd = m.viewport.Update(msg)
+	if m.writingMessage && isUserTurn(m) {
+		m.currentMessage, tiCmd = m.currentMessage.Update(msg)
+	} else {
+		m.viewport, vpCmd = m.viewport.Update(msg)
+	}
+	m.metadata, cmd = m.metadata.Update(msg)
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
@@ -232,9 +209,12 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if width > presentation.MaxWidth {
 			width = presentation.MaxWidth
 		}
-		m.currentLine.SetWidth(width)
-		m.viewport.Width = width
+		if isUserTurn(m) {
+			m.currentMessage.SetWidth(width)
+		}
 		m.width = width
+		m.viewport.Width = width
+		m.viewport.Height = msg.Height - 5
 
 	case tea.KeyMsg:
 		currentKey := msg.String()
@@ -247,18 +227,24 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if isUserTurn(m) {
-				m.userLines = append(m.userLines, m.currentLine.Value())
-				m.currentLine.Reset()
-				m.viewport.GotoBottom()
-				m.viewport.SetContent(m.renderConversation())
-
-				return m, m.DoBotMessage
+				if m.writingMessage && m.currentMessage.Value() != "" {
+					m.userLines = append(m.userLines, m.currentMessage.Value())
+					m.currentMessage.Reset()
+					m.viewport.GotoBottom()
+					m.viewport.SetContent(m.renderConversation())
+					m.writingMessage = false
+					return m, m.DoBotMessage
+				} else if !m.writingMessage {
+					m.writingMessage = true
+				} else {
+					m.writingMessage = false
+				}
 			}
 			return m, cmd
 		}
 	case bots.BotResponse:
 		m.botLines = append(m.botLines, msg)
-		m.currentLine.Reset()
+		m.currentMessage.Reset()
 		m.viewport.GotoBottom()
 		m.viewport.SetContent(m.renderConversation())
 	default:
