@@ -47,6 +47,7 @@ func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []string, s
 		Metadata: map[string]string{
 			"model":      gptModel.Name,
 			"tokensUsed": strconv.Itoa(chatGPTResponse.Usage.TotalTokens),
+			"maxTokens":  strconv.Itoa(gptModel.MaxTokens),
 		},
 	}
 }
