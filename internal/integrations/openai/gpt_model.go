@@ -13,6 +13,7 @@ import (
 
 const MessagesCut = "messagesCut"
 const TokensUsed = "tokensUsed"
+const Buffer = 500
 
 func GetGPTModel(name string) bots.ChatBotI {
 	apiKey := os.Getenv("OPENAI_API_KEY")
@@ -70,7 +71,7 @@ func determineMessagesToCut(botLines []bots.BotResponse, maxTokens int) int {
 			panic(fmt.Sprintf("Bad metadata for tokensUsed %s", lastBotLine.Metadata[TokensUsed]))
 		}
 
-		if lastTokensUsed > maxTokens {
+		if lastTokensUsed >= maxTokens-Buffer {
 			messagesToCut += 1
 		}
 	}
