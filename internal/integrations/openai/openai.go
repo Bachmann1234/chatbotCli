@@ -32,10 +32,10 @@ type ChatGPTUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func ConstructMessages(userLines []string, botLines []bots.BotResponse, systemPrompt string) []ChatGPTMessage {
+func ConstructMessages(userLines []string, botLines []bots.BotResponse, systemPrompt string, messagesToCut int) []ChatGPTMessage {
 	var messages []ChatGPTMessage
 	messages = append(messages, ChatGPTMessage{systemPrompt, "system"})
-	for i := 0; i < len(userLines); i++ {
+	for i := messagesToCut; i < len(userLines); i++ {
 		messages = append(messages, ChatGPTMessage{userLines[i], "user"})
 		if i < len(botLines) {
 			messages = append(messages, ChatGPTMessage{botLines[i].Content, "assistant"})

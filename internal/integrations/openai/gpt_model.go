@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"dev/mattbachmann/chatbotcli/internal/bots"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 )
+
+const MessagesCut = "messagesCut"
+const TokensUsed = "tokensUsed"
 
 func GetGPTModel(name string) bots.ChatBotI {
 	apiKey := os.Getenv("OPENAI_API_KEY")
@@ -37,7 +41,7 @@ type GPTModel struct {
 }
 
 func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []bots.BotResponse, systemPrompt string) bots.BotResponse {
-	chatGPTResponse := gptModel.getChatGPTResponse(
+	chatGPTResponse, messagesCut := gptModel.getChatGPTResponse(
 		userLines,
 		botLines,
 		systemPrompt,
@@ -45,22 +49,47 @@ func (gptModel GPTModel) GetBotResponse(userLines []string, botLines []bots.BotR
 	return bots.BotResponse{
 		Content: chatGPTResponse.Choices[0].Message.Content,
 		Metadata: map[string]string{
-			"model":      gptModel.Name,
-			"tokensUsed": strconv.Itoa(chatGPTResponse.Usage.TotalTokens),
-			"maxTokens":  strconv.Itoa(gptModel.MaxTokens),
+			MessagesCut: strconv.Itoa(messagesCut),
+			TokensUsed:  strconv.Itoa(chatGPTResponse.Usage.TotalTokens),
 		},
 	}
+}
+
+func determineMessagesToCut(botLines []bots.BotResponse, maxTokens int) int {
+	messagesToCut := 0
+	if len(botLines) > 0 {
+		lastBotLine := botLines[len(botLines)-1]
+		lastLinesToCut, err := strconv.Atoi(lastBotLine.Metadata[MessagesCut])
+		if err != nil {
+			panic(fmt.Sprintf("Bad metadata for messagesCut %s", lastBotLine.Metadata[MessagesCut]))
+		}
+		messagesToCut = lastLinesToCut
+
+		lastTokensUsed, err := strconv.Atoi(lastBotLine.Metadata[TokensUsed])
+		if err != nil {
+			panic(fmt.Sprintf("Bad metadata for tokensUsed %s", lastBotLine.Metadata[TokensUsed]))
+		}
+
+		if lastTokensUsed > maxTokens {
+			messagesToCut += 1
+		}
+	}
+
+	return messagesToCut
+
 }
 
 func (gptModel GPTModel) getChatGPTResponse(
 	userLines []string,
 	botLines []bots.BotResponse,
 	systemPrompt string,
-) ChatGPTResponse {
+) (ChatGPTResponse, int) {
 	client := &http.Client{}
+	messagesToCut := determineMessagesToCut(botLines, gptModel.MaxTokens)
+	messages := ConstructMessages(userLines, botLines, systemPrompt, messagesToCut)
 	chatGptRequest := ChatGPTRequest{
 		Model:    gptModel.Name,
-		Messages: ConstructMessages(userLines, botLines, systemPrompt),
+		Messages: messages,
 	}
 	postBody, err := json.Marshal(chatGptRequest)
 	if err != nil {
@@ -93,5 +122,5 @@ func (gptModel GPTModel) getChatGPTResponse(
 	if err != nil {
 		panic(err)
 	}
-	return chatGPTResponse
+	return chatGPTResponse, messagesToCut
 }
