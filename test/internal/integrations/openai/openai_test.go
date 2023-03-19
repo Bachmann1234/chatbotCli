@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"dev/mattbachmann/chatbotcli/internal/bots"
 	"dev/mattbachmann/chatbotcli/internal/integrations/openai"
 	"testing"
 )
@@ -9,7 +10,20 @@ func TestConstructMessages(t *testing.T) {
 	// Verify that the messages are constructed correctly
 	var result = openai.ConstructMessages(
 		[]string{"Hello", "How are you?", "That's Great"},
-		[]string{"Howdy", "good!"},
+		[]bots.BotResponse{
+			{
+				Content: "Howdy",
+				Metadata: map[string]string{
+					"source": "assistant",
+				},
+			},
+			{
+				Content: "Good!",
+				Metadata: map[string]string{
+					"source": "assistant",
+				},
+			},
+		},
 		"System Prompt",
 	)
 
@@ -18,7 +32,7 @@ func TestConstructMessages(t *testing.T) {
 		{"Hello", "user"},
 		{"Howdy", "assistant"},
 		{"How are you?", "user"},
-		{"good!", "assistant"},
+		{"Good!", "assistant"},
 		{"That's Great", "user"},
 	}
 
