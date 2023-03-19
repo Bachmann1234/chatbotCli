@@ -22,13 +22,8 @@ func main() {
 		"gpt3_5",
 		"which internal to use, gpt3_5, gpt4, or lorem right now. Lorem is just for returning generic text",
 	)
-	showMetadata := flag.Bool(
-		"showMetadata",
-		true,
-		"Print the last set of metadata from the model",
-	)
 	flag.Parse()
-	p := tea.NewProgram(bubbletea.InitialModel(*systemPrompt, *modelName, *showMetadata))
+	p := tea.NewProgram(bubbletea.InitialModel(*systemPrompt, *modelName))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)

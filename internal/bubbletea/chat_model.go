@@ -32,7 +32,6 @@ type ChatModel struct {
 	spinner       spinner.Model
 	chatStartTime time.Time
 	chatBot       bots.ChatBotI
-	showMetadata  bool
 }
 
 func WriteLine(sb *strings.Builder, message string, user presentation.User) {
@@ -48,7 +47,7 @@ func WriteBotLine(sb *strings.Builder, message string) {
 	WriteLine(sb, message, presentation.BotUser)
 }
 
-func InitialModel(systemPrompt string, modelName string, showMetadata bool) ChatModel {
+func InitialModel(systemPrompt string, modelName string) ChatModel {
 	userInput := textinput.New()
 	userInput.TextStyle = presentation.HumanUser.Style
 	userInput.Prompt = presentation.HumanUser.Prompt
@@ -88,7 +87,6 @@ func InitialModel(systemPrompt string, modelName string, showMetadata bool) Chat
 		spinner:       s,
 		chatBot:       GetModel(modelName),
 		chatStartTime: time.Now(),
-		showMetadata:  showMetadata,
 	}
 }
 
@@ -115,26 +113,31 @@ func isBotTurn(m ChatModel) bool {
 	return !isUserTurn(m)
 }
 
-func writeMetadataAsJsonString(sb *strings.Builder, lastBotLine bots.BotResponse) {
+func writeMetadataAsJsonString(sb *strings.Builder, lastBotLine *bots.BotResponse) {
 	sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
-	keys := make([]string, 0, len(lastBotLine.Metadata))
 
-	for k := range lastBotLine.Metadata {
-		keys = append(keys, k)
+	if lastBotLine != nil {
+		keys := make([]string, 0, len(lastBotLine.Metadata))
+		for k := range lastBotLine.Metadata {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", k, lastBotLine.Metadata[k])))
+		}
+		sb.WriteString("\n")
+
 	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", k, lastBotLine.Metadata[k])))
-	}
-	sb.WriteString("\n")
 }
 
 func (m ChatModel) View() string {
 	var sb strings.Builder
-	if m.showMetadata && len(m.botLines) > 0 {
-		writeMetadataAsJsonString(&sb, m.botLines[len(m.botLines)-1])
-		sb.WriteString("\n\n")
+	var lastBotLine *bots.BotResponse
+	if len(m.botLines) > 0 {
+		lastBotLine = &m.botLines[len(m.botLines)-1]
 	}
+	writeMetadataAsJsonString(&sb, lastBotLine)
+	sb.WriteString("\n\n")
 	sb.WriteString(m.viewport.View())
 	sb.WriteString("\n\n")
 	if isBotTurn(m) {
