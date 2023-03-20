@@ -234,8 +234,8 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.writingMessage && m.currentMessage.Value() != "" {
 					m.userLines = append(m.userLines, m.currentMessage.Value())
 					m.currentMessage.Reset()
-					m.viewport.GotoBottom()
 					m.viewport.SetContent(m.renderConversation())
+					m.viewport.GotoBottom()
 					m.writingMessage = false
 					return m, m.DoBotMessage
 				} else if !m.writingMessage {
@@ -249,8 +249,8 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bots.BotResponse:
 		m.botLines = append(m.botLines, msg)
 		m.currentMessage.Reset()
-		m.viewport.GotoBottom()
 		m.viewport.SetContent(m.renderConversation())
+		m.viewport.GotoBottom()
 	default:
 		m.spinner, cmd = m.spinner.Update(msg)
 	}

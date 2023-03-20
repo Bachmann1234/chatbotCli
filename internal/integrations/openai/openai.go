@@ -68,7 +68,9 @@ func (openaiClient Client) GetChatGPTResponse(
 	messagesToCut int,
 	gptModel GPTModel,
 ) ChatGPTResponse {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	messages := ConstructMessages(userLines, botLines, systemPrompt, messagesToCut)
 	chatGptRequest := ChatGPTRequest{
 		Model:    gptModel.Name,
