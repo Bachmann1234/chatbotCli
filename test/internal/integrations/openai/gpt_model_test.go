@@ -38,9 +38,10 @@ func (openAIClient MockOpenAIClient) GetChatGPTResponse(
 
 func TestIncrementingLinesToRemoveWhenUsedTokensHigh(t *testing.T) {
 	model := openai.GPTModel{
-		Name:      "test",
-		MaxTokens: 1000,
-		Client:    MockOpenAIClient{},
+		Name:             "test",
+		MaxTokens:        1000,
+		Client:           MockOpenAIClient{},
+		PricePer1KTokens: "0.00",
 	}
 
 	response := model.GetBotResponse(
@@ -72,9 +73,10 @@ func TestIncrementingLinesToRemoveWhenUsedTokensHigh(t *testing.T) {
 
 func TestLeavingTokensAloneWhenUsedLow(t *testing.T) {
 	model := openai.GPTModel{
-		Name:      "test",
-		MaxTokens: 1000,
-		Client:    MockOpenAIClient{},
+		Name:             "test",
+		MaxTokens:        1000,
+		Client:           MockOpenAIClient{},
+		PricePer1KTokens: "0.00",
 	}
 
 	response := model.GetBotResponse(
