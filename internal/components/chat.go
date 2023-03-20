@@ -57,7 +57,8 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 	ta.Focus()
 
 	ta.SetWidth(presentation.MaxWidth)
-	ta.SetHeight(25)
+	ta.SetHeight(5)
+	ta.Placeholder = "What's your message?"
 	ta.ShowLineNumbers = false
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
