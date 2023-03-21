@@ -28,7 +28,6 @@ type ChatModel struct {
 	currentMessage textarea.Model
 	viewport       viewport.Model
 	metadata       tea.Model
-	width          int
 	quitting       bool
 	spinner        spinner.Model
 	chatStartTime  time.Time
@@ -38,7 +37,6 @@ type ChatModel struct {
 
 func WriteLine(sb *strings.Builder, message string, user presentation.User) {
 	sb.WriteString(user.Style.Render(fmt.Sprintf("%s%s", user.Prompt, message)))
-	sb.WriteString("\n")
 }
 
 func WriteUserLine(sb *strings.Builder, message string) {
@@ -57,13 +55,13 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 	ta := textarea.New()
 	ta.Focus()
 
-	ta.SetWidth(presentation.MaxWidth)
 	ta.SetHeight(5)
+	ta.SetWidth(presentation.BoxWidth)
 	ta.Placeholder = "What's your message?"
 	ta.ShowLineNumbers = false
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
-	vp := viewport.New(presentation.MaxWidth, 10)
+	vp := viewport.New(presentation.BoxWidth, 10)
 	s := spinner.New()
 	s.Spinner = spinner.Points
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
@@ -82,7 +80,6 @@ func InitialModel(systemPrompt string, modelName string) ChatModel {
 		chatBot:        GetAIModel(modelName),
 		chatStartTime:  time.Now(),
 		writingMessage: true,
-		width:          presentation.MaxWidth,
 	}
 }
 
@@ -115,10 +112,10 @@ func (m ChatModel) View() string {
 		sb.WriteString(m.spinner.View())
 		sb.WriteString("\n")
 	} else {
-		sb.WriteString(m.metadata.View())
+		sb.WriteString(presentation.MetadataStyle.Render(m.metadata.View()))
 	}
+	sb.WriteString("\n")
 	if m.writingMessage {
-		sb.WriteString("\n")
 		sb.WriteString(m.currentMessage.View())
 	} else {
 		sb.WriteString(m.viewport.View())
@@ -193,20 +190,21 @@ func (m ChatModel) WriteChatToFile() tea.Cmd {
 
 func (m ChatModel) renderConversation() string {
 	var sb strings.Builder
-	width := m.width
-	if width > presentation.MaxWidth {
-		width = presentation.MaxWidth
-	}
+	sb.WriteString(
+		lipgloss.NewStyle().
+			Foreground(presentation.PromptColor).
+			Bold(true).
+			Render("Initial Prompt: "),
+	)
 	sb.WriteString(
 		presentation.PromptStyle.Render(
-			wordwrap.String(fmt.Sprintf("*Initial Prompt*: %s", m.systemPrompt), width),
+			wordwrap.String(m.systemPrompt, presentation.Width),
 		),
 	)
-	sb.WriteString("\n\n---\n")
 	for index, message := range m.userLines {
-		WriteUserLine(&sb, wordwrap.String(message, width))
+		WriteUserLine(&sb, wordwrap.String(message, presentation.Width))
 		if index < len(m.botLines) {
-			WriteBotLine(&sb, wordwrap.String(m.botLines[index].Content, width))
+			WriteBotLine(&sb, wordwrap.String(m.botLines[index].Content, presentation.Width))
 		}
 	}
 	return sb.String()
@@ -227,15 +225,6 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		width := msg.Width
-		if width > presentation.MaxWidth {
-			width = presentation.MaxWidth
-		}
-		if isUserTurn(m) {
-			m.currentMessage.SetWidth(width)
-		}
-		m.width = width
-		m.viewport.Width = width
 		m.viewport.Height = msg.Height - 5
 
 	case tea.KeyMsg:

@@ -2,7 +2,6 @@ package bot_metadata
 
 import (
 	"dev/mattbachmann/chatbotcli/internal/bots"
-	"dev/mattbachmann/chatbotcli/internal/presentation"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"sort"
@@ -39,13 +38,10 @@ func (m Model) View() string {
 	}
 	sort.Strings(keys)
 	if len(keys) > 0 {
-		sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
+		sb.WriteString("Metadata - ")
 	}
 	for _, k := range keys {
-		sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", k, m.metadata[k])))
-	}
-	if len(keys) > 0 {
-		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("%s: %s ", k, m.metadata[k]))
 	}
 	return sb.String()
 }
