@@ -111,7 +111,6 @@ func isBotTurn(m ChatModel) bool {
 
 func (m ChatModel) View() string {
 	var sb strings.Builder
-	sb.WriteString("\n")
 	if isBotTurn(m) {
 		sb.WriteString(m.spinner.View())
 		sb.WriteString("\n")
@@ -200,10 +199,10 @@ func (m ChatModel) renderConversation() string {
 	}
 	sb.WriteString(
 		presentation.PromptStyle.Render(
-			wordwrap.String(fmt.Sprintf("Initial Prompt: %s", m.systemPrompt), width),
+			wordwrap.String(fmt.Sprintf("*Initial Prompt*: %s", m.systemPrompt), width),
 		),
 	)
-	sb.WriteString("\n\n---\n\n")
+	sb.WriteString("\n\n---\n")
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, wordwrap.String(message, width))
 		if index < len(m.botLines) {

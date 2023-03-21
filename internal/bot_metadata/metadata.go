@@ -33,15 +33,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var sb strings.Builder
-	sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
 	keys := make([]string, 0, len(m.metadata))
 	for k := range m.metadata {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	if len(keys) > 0 {
+		sb.WriteString(presentation.MetadataStyle.Render("Metadata - "))
+	}
 	for _, k := range keys {
 		sb.WriteString(presentation.MetadataStyle.Render(fmt.Sprintf("%s: %s ", k, m.metadata[k])))
 	}
-	sb.WriteString("\n")
+	if len(keys) > 0 {
+		sb.WriteString("\n")
+	}
 	return sb.String()
 }
