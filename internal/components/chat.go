@@ -16,6 +16,7 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -130,10 +131,23 @@ func (m ChatModel) formatChatForMarkdown() string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("# System Prompt: %s\n", m.systemPrompt))
 	sb.WriteString(fmt.Sprintf("## %s\n\n", m.chatStartTime.Format("2006-January-02 15:04:05")))
+	if len(m.botLines) > 0 {
+		finalMetadata := m.botLines[len(m.botLines)-1].Metadata
+		sb.WriteString("## Metadata - ")
+		keys := make([]string, 0, len(finalMetadata))
+		for k := range finalMetadata {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			sb.WriteString(fmt.Sprintf("%s: %s ", k, finalMetadata[k]))
+		}
+		sb.WriteString("\n\n")
+	}
 	for i := 0; i < len(m.userLines); i++ {
 		sb.WriteString(fmt.Sprintf("### Human \n %s%s\n\n", presentation.HumanUser.Prompt, m.userLines[i]))
 		if i < len(m.botLines) {
-			sb.WriteString(fmt.Sprintf("### Bot \n %s%s\n\n", presentation.BotUser.Prompt, m.botLines[i]))
+			sb.WriteString(fmt.Sprintf("### Bot \n %s%s\n\n", presentation.BotUser.Prompt, m.botLines[i].Content))
 		}
 	}
 	return sb.String()
