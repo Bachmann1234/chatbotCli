@@ -14,5 +14,7 @@ The program will will be a conversation between you and chatgpt. You can customi
 ```bash
 chatbotCli -prompt "You are the coolest bot in the world"
 ```
+![Example coversation](./example.gif)
 
 Quit at any time with `ctrl-c`. Your chat will be saved as a markdown file in either the current directory or the directory specified by `CHATBOT_LOGS`
+![Example of a recorded log](./rendered_log.png)
