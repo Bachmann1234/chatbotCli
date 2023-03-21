@@ -203,7 +203,7 @@ func (m ChatModel) renderConversation() string {
 			wordwrap.String(fmt.Sprintf("Initial Prompt: %s", m.systemPrompt), width),
 		),
 	)
-	sb.WriteString("\n")
+	sb.WriteString("\n\n---\n\n")
 	for index, message := range m.userLines {
 		WriteUserLine(&sb, wordwrap.String(message, width))
 		if index < len(m.botLines) {
