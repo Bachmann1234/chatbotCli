@@ -15,6 +15,9 @@ var BotStyle = lipgloss.NewStyle().
 var UserStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#fc0ff5")).PaddingTop(1)
 
+var PromptStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#6df1d8")).PaddingTop(1)
+
 type User struct {
 	Prompt string
 	Style  lipgloss.Style

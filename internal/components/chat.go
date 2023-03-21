@@ -194,18 +194,23 @@ func (m ChatModel) WriteChatToFile() tea.Cmd {
 
 func (m ChatModel) renderConversation() string {
 	var sb strings.Builder
-	WriteBotLine(&sb, fmt.Sprintf("Prompt: %s", m.systemPrompt))
-	for index, message := range m.userLines {
-		WriteUserLine(&sb, message)
-		if index < len(m.botLines) {
-			WriteBotLine(&sb, m.botLines[index].Content)
-		}
-	}
 	width := m.width
 	if width > presentation.MaxWidth {
 		width = presentation.MaxWidth
 	}
-	return wordwrap.String(sb.String(), width)
+	sb.WriteString(
+		presentation.PromptStyle.Render(
+			wordwrap.String(fmt.Sprintf("Initial Prompt: %s", m.systemPrompt), width),
+		),
+	)
+	sb.WriteString("\n")
+	for index, message := range m.userLines {
+		WriteUserLine(&sb, wordwrap.String(message, width))
+		if index < len(m.botLines) {
+			WriteBotLine(&sb, wordwrap.String(m.botLines[index].Content, width))
+		}
+	}
+	return sb.String()
 }
 
 func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
