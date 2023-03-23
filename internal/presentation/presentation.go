@@ -3,7 +3,7 @@ package presentation
 import "github.com/charmbracelet/lipgloss"
 
 const Width = 80
-const BoxWidth = 120
+const BoxWidth = 140
 const CompPrompt = "◎ "
 const UserPrompt = "▶ "
 
